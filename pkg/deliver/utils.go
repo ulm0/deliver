@@ -1,0 +1,113 @@
+package deliver
+
+import (
+	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
+	"fmt"
+	"hash/adler32"
+	"hash/crc32"
+	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+)
+
+var (
+	fileExistsValues = map[string]bool{
+		"fail":      true,
+		"overwrite": true,
+		"skip":      true,
+	}
+)
+
+func readStringOrFile(input string) (string, error) {
+	if len(input) > 255 {
+		return input, nil
+	}
+	if _, err := os.Stat(input); err != nil && os.IsNotExist(err) {
+		return input, nil
+	} else if err != nil {
+		return "", err
+	}
+	result, err := ioutil.ReadFile(input)
+	if err != nil {
+		return "", err
+	}
+	return string(result), nil
+}
+
+func checksum(r io.Reader, method string) (string, error) {
+	b, err := ioutil.ReadAll(r)
+
+	if err != nil {
+		return "", err
+	}
+
+	switch method {
+	case "md5":
+		return fmt.Sprintf("%x", md5.Sum(b)), nil
+	case "sha1":
+		return fmt.Sprintf("%x", sha1.Sum(b)), nil
+	case "sha256":
+		return fmt.Sprintf("%x", sha256.Sum256(b)), nil
+	case "sha512":
+		return fmt.Sprintf("%x", sha512.Sum512(b)), nil
+	case "adler32":
+		return strconv.FormatUint(uint64(adler32.Checksum(b)), 10), nil
+	case "crc32":
+		return strconv.FormatUint(uint64(crc32.ChecksumIEEE(b)), 10), nil
+	}
+
+	return "", fmt.Errorf("Hashing method %s is not supported", method)
+}
+
+func writeChecksums(files, methods []string, format string, flatten bool) ([]string, error) {
+	checksums := make(map[string][]string)
+
+	for _, method := range methods {
+		for _, file := range files {
+			handle, err := os.Open(file)
+
+			if err != nil {
+				return nil, fmt.Errorf("Failed to read %s artifact: %w", file, err)
+			}
+
+			hash, err := checksum(handle, method)
+
+			if err != nil {
+				return nil, err
+			}
+
+			checksums[method] = append(checksums[method], hash, file)
+		}
+	}
+
+	for method, results := range checksums {
+		filename := strings.Replace(format, "CHECKSUM", method, -1)
+		f, err := os.Create(filename)
+
+		if err != nil {
+			return nil, err
+		}
+
+		for i := 0; i < len(results); i += 2 {
+			hash := results[i]
+			file := results[i+1]
+
+			if flatten {
+				file = filepath.Base(file)
+			}
+
+			if _, err := f.WriteString(fmt.Sprintf("%s	%s\n", hash, file)); err != nil {
+				return nil, err
+			}
+		}
+		files = append(files, filename)
+	}
+
+	return files, nil
+}

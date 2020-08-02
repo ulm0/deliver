@@ -2,6 +2,7 @@ package cli
 
 import (
 	"os"
+	"sort"
 
 	"github.com/pkg/errors"
 	"github.com/ulm0/deliver/pkg/deliver"
@@ -26,6 +27,8 @@ func Execute() error {
 		Flags:  configFlags(config),
 		Action: run(config),
 	}
+
+	sort.Sort(cli.FlagsByName(app.Flags))
 
 	if err := app.Run(os.Args); err != nil {
 		return err

@@ -1,4 +1,4 @@
-FROM golang:1.14.5-alpine
+FROM golang:1.14.6-alpine
 ARG VERSION
 ARG WORK_DIR
 ENV WORK_DIR=${WORK_DIR:-/go/src/github.com/ulm0/deliver}

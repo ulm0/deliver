@@ -29,6 +29,7 @@ type Config struct {
 	Tag             string
 	Title           string
 	UploadURL       string
+	OnlyTags        bool
 
 	apiURL    *url.URL
 	uploadURL *url.URL
@@ -52,16 +53,14 @@ type deliverer struct {
 // Check checks if everything is as supposed
 func (c *Config) Check() error {
 	var err error
-	repoTag := os.Getenv("CI_COMMIT_TAG")
 	repoName := os.Getenv("CI_PROJECT_NAME")
-	if repoTag == "" {
-		return fmt.Errorf("deliver only works on tag refs")
-	}
-	c.Tag = repoTag
 	if repoName == "" {
 		return fmt.Errorf("Repo name not set")
 	}
 	c.Repo = repoName
+	if !c.OnlyTags && c.Tag == "" {
+		return fmt.Errorf("--tag must be set when --only-tags=false")
+	}
 	if c.APIToken == "" {
 		return fmt.Errorf("API key not set")
 	}

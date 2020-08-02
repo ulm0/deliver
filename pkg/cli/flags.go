@@ -30,7 +30,7 @@ func configFlags(config *deliver.Config) []cli.Flag {
 		},
 		&cli.StringSliceFlag{
 			Name:        "checksum",
-			Aliases:     []string{"s"},
+			Aliases:     []string{"c"},
 			EnvVars:     []string{"RELEASE_CHECKSUM"},
 			Usage:       "Methods for generating files checksums",
 			Destination: &config.Checksum,
@@ -52,7 +52,7 @@ func configFlags(config *deliver.Config) []cli.Flag {
 		},
 		&cli.BoolFlag{
 			Name:        "draft",
-			Aliases:     []string{"t"},
+			Aliases:     []string{"d"},
 			EnvVars:     []string{"DRAFT_RELEASE"},
 			Usage:       "This is a draft release",
 			Destination: &config.Draft,
@@ -89,10 +89,23 @@ func configFlags(config *deliver.Config) []cli.Flag {
 		},
 		&cli.StringFlag{
 			Name:        "description",
-			Aliases:     []string{"d"},
 			EnvVars:     []string{"RELEASE_DESCRIPTION"},
 			Usage:       "File or string containing release description",
 			Destination: &config.Note,
+		},
+		&cli.BoolFlag{
+			Name:        "only-tags",
+			EnvVars:     []string{"RELEASE_ONLY_TAGS"},
+			Usage:       "Release only on tag refs. If set to false --tag must be set",
+			Value:       true,
+			Destination: &config.OnlyTags,
+		},
+		&cli.StringFlag{
+			Name:        "tag",
+			Aliases:     []string{"t"},
+			EnvVars:     []string{"CI_COMMIT_TAG", "RELEASE_TAG"},
+			Usage:       "Tag ref for this release. If --only-tags is false, this value must be set",
+			Destination: &config.Tag,
 		},
 		&cli.BoolFlag{
 			Name:        "override",

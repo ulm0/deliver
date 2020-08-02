@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+VERSION="dev-$(git branch --show-current)"
+
+if [ ! -z "${CI_COMMIT_TAG}" ]; then
+    VERSION=$(cat ${SCRIPT_PATH}/../VERSION)
+fi
+
+echo "${VERSION}"

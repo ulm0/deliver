@@ -19,6 +19,7 @@ lint:
     # - cd -
     # - rm -rf /go/src /go/pkg
     - wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.30.0
+    - install ./bin/golangci-lint /bin/golangci-lint
+    - rm -f ./bin/golangci-lint
   script:
     - golangci-lint run
-

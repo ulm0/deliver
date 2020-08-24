@@ -1,17 +1,14 @@
 VERSION=$(CI_COMMIT_REF_NAME)-$(CI_COMMIT_SHORT_SHA)
-CONTAINER_REGISTRY=$(CI_REGISTRY)
 CONTAINER_IMAGE=$(CI_REGISTRY_IMAGE)
 ifdef CI_COMMIT_TAG
-CONTAINER_REGISTRY=docker.io
-CONTAINER_IMAGE=ulm0/deliver
+CONTAINER_IMAGE=docker.io/ulm0/deliver
 VERSION=$(shell ./hack/version)
 endif
 LD_FLAGS=-s -w -extldflags -static -X github.com/ulm0/deliver/pkg/cli.Version=$(VERSION)
-CONTAINER_IMAGE_FULL=$(CONTAINER_REGISTRY)/$(CONTAINER_IMAGE)
-CONTAINER_LIST=$(CONTAINER_IMAGE_FULL):$(VERSION)
+CONTAINER_LIST=$(CONTAINER_IMAGE):$(VERSION)
 ifdef CI_COMMIT_TAG
 # cheap fix for multiple tags
-CONTAINER_LIST+=-t $(CONTAINER_IMAGE_FULL):latest
+CONTAINER_LIST+=-t $(CONTAINER_IMAGE):latest
 endif
 
 build:
@@ -22,4 +19,4 @@ build-docker:
 	@docker build --build-arg VERSION=$(VERSION) -t $(CONTAINER_LIST) .
 
 push-docker:
-	@docker push $(CONTAINER_IMAGE_FULL)
+	@docker push $(CONTAINER_IMAGE)
